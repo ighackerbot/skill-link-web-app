@@ -8,7 +8,7 @@ export function QuickStatsCards() {
       value: "12",
       change: "+3 this week",
       icon: Users,
-      color: "text-brand",
+      color: "text-foreground",
     },
     {
       label: "Sessions Completed",
@@ -36,16 +36,16 @@ export function QuickStatsCards() {
   return (
     <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {stats.map((stat) => (
-        <Card key={stat.label} className="bg-surface border-border">
+        <Card key={stat.label} className="bg-card border-border/50">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">{stat.label}</p>
                 <p className="text-2xl font-bold">{stat.value}</p>
-                <p className="text-xs text-subtle">{stat.change}</p>
+                <p className="text-xs text-muted-foreground">{stat.change}</p>
               </div>
               <div
-                className={`w-10 h-10 rounded-lg bg-surface-elevated flex items-center justify-center ${stat.color}`}
+                className={`w-10 h-10 rounded-lg bg-muted flex items-center justify-center ${stat.color}`}
               >
                 <stat.icon className="w-5 h-5" />
               </div>

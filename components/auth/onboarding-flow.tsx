@@ -1,25 +1,17 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { X, Plus } from "lucide-react"
+import { completeOnboarding, getCurrentUser } from "@/lib/auth/auth-helpers"
+import { toast } from "sonner"
 
-const COURSES = [
-  "Computer Science 101",
-  "Data Structures",
-  "Algorithms",
-  "Web Development",
-  "Machine Learning",
-  "Database Systems",
-  "Operating Systems",
-  "Software Engineering",
-]
-
-const SKILLS = [
+const SKILLS_KNOWN = [
   "Python",
   "JavaScript",
   "Java",
@@ -29,14 +21,35 @@ const SKILLS = [
   "Git",
   "TypeScript",
   "C++",
-  "Algorithm Design",
+  "DSA",
+  "Photography",
+  "UI/UX Design",
+  "Machine Learning",
+  "Web Development",
+]
+
+const SKILLS_LEARNING = [
+  "Python",
+  "JavaScript",
+  "React",
+  "DSA",
+  "Machine Learning",
+  "UI/UX Design",
+  "Photography",
+  "Web Development",
+  "Mobile Development",
+  "DevOps",
 ]
 
 export function OnboardingFlow() {
+  const router = useRouter()
   const [step, setStep] = useState(1)
-  const [selectedCourses, setSelectedCourses] = useState<string[]>([])
-  const [selectedSkills, setSelectedSkills] = useState<string[]>([])
+  const [skillsKnown, setSkillsKnown] = useState<string[]>([])
+  const [skillsLearning, setSkillsLearning] = useState<string[]>([])
   const [learningGoals, setLearningGoals] = useState("")
+  const [customSkillKnown, setCustomSkillKnown] = useState("")
+  const [customSkillLearning, setCustomSkillLearning] = useState("")
+  const [loading, setLoading] = useState(false)
 
   const toggleSelection = (item: string, list: string[], setter: (val: string[]) => void) => {
     if (list.includes(item)) {
@@ -49,42 +62,68 @@ export function OnboardingFlow() {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="w-full max-w-2xl">
-        <div className="bg-surface rounded-lg border border-border p-8">
+        <div className="bg-card rounded-lg border border-border/50 p-8 shadow-sm">
           {/* Progress Bar */}
           <div className="mb-8">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm text-muted-foreground">Step {step} of 3</span>
               <span className="text-sm text-muted-foreground">{Math.round((step / 3) * 100)}%</span>
             </div>
-            <div className="h-2 bg-surface-elevated rounded-full overflow-hidden">
-              <div className="h-full bg-brand transition-all duration-300" style={{ width: `${(step / 3) * 100}%` }} />
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <div className="h-full bg-foreground transition-all duration-300" style={{ width: `${(step / 3) * 100}%` }} />
             </div>
           </div>
 
-          {/* Step 1: Courses */}
+          {/* Step 1: Skills You Know */}
           {step === 1 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-2xl font-bold mb-2">Select Your Courses</h2>
-                <p className="text-muted-foreground">Choose the courses you're currently taking or interested in</p>
+                <h2 className="text-2xl font-bold mb-2">Skills You Know</h2>
+                <p className="text-muted-foreground">
+                  Select the skills you're proficient in and can help others with
+                </p>
               </div>
               <div className="space-y-4">
                 <div className="flex flex-wrap gap-2">
-                  {COURSES.map((course) => (
+                  {SKILLS_KNOWN.map((skill) => (
                     <Badge
-                      key={course}
-                      variant={selectedCourses.includes(course) ? "default" : "outline"}
-                      className="cursor-pointer hover:bg-brand/10"
-                      onClick={() => toggleSelection(course, selectedCourses, setSelectedCourses)}
+                      key={skill}
+                      variant={skillsKnown.includes(skill) ? "default" : "outline"}
+                      className="cursor-pointer hover:bg-foreground/10"
+                      onClick={() => toggleSelection(skill, skillsKnown, setSkillsKnown)}
                     >
-                      {course}
-                      {selectedCourses.includes(course) && <X className="w-3 h-3 ml-1" />}
+                      {skill}
+                      {skillsKnown.includes(skill) && <X className="w-3 h-3 ml-1" />}
                     </Badge>
                   ))}
                 </div>
                 <div className="flex gap-2">
-                  <Input placeholder="Add custom course..." className="bg-background" />
-                  <Button variant="outline" size="icon">
+                  <Input
+                    placeholder="Add custom skill..."
+                    className="bg-background"
+                    value={customSkillKnown}
+                    onChange={(e) => setCustomSkillKnown(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && customSkillKnown.trim()) {
+                        e.preventDefault()
+                        if (!skillsKnown.includes(customSkillKnown.trim())) {
+                          setSkillsKnown([...skillsKnown, customSkillKnown.trim()])
+                          setCustomSkillKnown("")
+                        }
+                      }
+                    }}
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    type="button"
+                    onClick={() => {
+                      if (customSkillKnown.trim() && !skillsKnown.includes(customSkillKnown.trim())) {
+                        setSkillsKnown([...skillsKnown, customSkillKnown.trim()])
+                        setCustomSkillKnown("")
+                      }
+                    }}
+                  >
                     <Plus className="w-4 h-4" />
                   </Button>
                 </div>
@@ -92,32 +131,56 @@ export function OnboardingFlow() {
             </div>
           )}
 
-          {/* Step 2: Skills */}
+          {/* Step 2: Skills You Want to Learn */}
           {step === 2 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-2xl font-bold mb-2">Share Your Skills</h2>
+                <h2 className="text-2xl font-bold mb-2">Skills You Want to Learn</h2>
                 <p className="text-muted-foreground">
-                  Let others know what you can help with and what you want to learn
+                  Select the skills you want to learn and find mentors for
                 </p>
               </div>
               <div className="space-y-4">
                 <div className="flex flex-wrap gap-2">
-                  {SKILLS.map((skill) => (
+                  {SKILLS_LEARNING.map((skill) => (
                     <Badge
                       key={skill}
-                      variant={selectedSkills.includes(skill) ? "default" : "outline"}
-                      className="cursor-pointer hover:bg-brand/10"
-                      onClick={() => toggleSelection(skill, selectedSkills, setSelectedSkills)}
+                      variant={skillsLearning.includes(skill) ? "default" : "outline"}
+                      className="cursor-pointer hover:bg-foreground/10"
+                      onClick={() => toggleSelection(skill, skillsLearning, setSkillsLearning)}
                     >
                       {skill}
-                      {selectedSkills.includes(skill) && <X className="w-3 h-3 ml-1" />}
+                      {skillsLearning.includes(skill) && <X className="w-3 h-3 ml-1" />}
                     </Badge>
                   ))}
                 </div>
                 <div className="flex gap-2">
-                  <Input placeholder="Add custom skill..." className="bg-background" />
-                  <Button variant="outline" size="icon">
+                  <Input
+                    placeholder="Add custom skill..."
+                    className="bg-background"
+                    value={customSkillLearning}
+                    onChange={(e) => setCustomSkillLearning(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && customSkillLearning.trim()) {
+                        e.preventDefault()
+                        if (!skillsLearning.includes(customSkillLearning.trim())) {
+                          setSkillsLearning([...skillsLearning, customSkillLearning.trim()])
+                          setCustomSkillLearning("")
+                        }
+                      }
+                    }}
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    type="button"
+                    onClick={() => {
+                      if (customSkillLearning.trim() && !skillsLearning.includes(customSkillLearning.trim())) {
+                        setSkillsLearning([...skillsLearning, customSkillLearning.trim()])
+                        setCustomSkillLearning("")
+                      }
+                    }}
+                  >
                     <Plus className="w-4 h-4" />
                   </Button>
                 </div>
@@ -129,15 +192,17 @@ export function OnboardingFlow() {
           {step === 3 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-2xl font-bold mb-2">Set Your Learning Goals</h2>
-                <p className="text-muted-foreground">Tell us what you want to achieve this semester</p>
+                <h2 className="text-2xl font-bold mb-2">Learning Goals</h2>
+                <p className="text-muted-foreground">
+                  Share your learning objectives (e.g., "Learn React by Feb", "Improve DSA fundamentals")
+                </p>
               </div>
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="goals">Learning Goals</Label>
                   <Textarea
                     id="goals"
-                    placeholder="E.g., Master React hooks, Improve algorithm skills, Build a full-stack app..."
+                    placeholder="E.g., Learn React by Feb, Improve DSA fundamentals, Master Python..."
                     className="bg-background min-h-32"
                     value={learningGoals}
                     onChange={(e) => setLearningGoals(e.target.value)}
@@ -149,15 +214,57 @@ export function OnboardingFlow() {
 
           {/* Navigation */}
           <div className="flex items-center justify-between mt-8">
-            <Button variant="outline" onClick={() => setStep(step - 1)} disabled={step === 1}>
+            <Button variant="outline" onClick={() => setStep(step - 1)} disabled={step === 1 || loading}>
               Back
             </Button>
             {step < 3 ? (
-              <Button className="bg-brand hover:bg-brand-hover" onClick={() => setStep(step + 1)}>
+              <Button
+                onClick={() => {
+                  if (step === 1 && skillsKnown.length === 0) {
+                    toast.error("Please select at least one skill you know")
+                    return
+                  }
+                  if (step === 2 && skillsLearning.length === 0) {
+                    toast.error("Please select at least one skill you want to learn")
+                    return
+                  }
+                  setStep(step + 1)
+                }}
+                disabled={loading}
+              >
                 Continue
               </Button>
             ) : (
-              <Button className="bg-brand hover:bg-brand-hover">Complete Setup</Button>
+              <Button
+                onClick={async () => {
+                  if (!learningGoals.trim()) {
+                    toast.error("Please enter your learning goals")
+                    return
+                  }
+
+                  setLoading(true)
+                  try {
+                    const user = await getCurrentUser()
+                    if (!user) {
+                      toast.error("Please sign in first")
+                      router.push("/login")
+                      return
+                    }
+
+                    await completeOnboarding(user.id, skillsKnown, skillsLearning, learningGoals)
+                    toast.success("Onboarding complete! Welcome to SkillLink!")
+                    router.push("/dashboard")
+                    router.refresh()
+                  } catch (error) {
+                    toast.error(error instanceof Error ? error.message : "Failed to complete onboarding")
+                  } finally {
+                    setLoading(false)
+                  }
+                }}
+                disabled={loading}
+              >
+                {loading ? "Saving..." : "Complete Setup"}
+              </Button>
             )}
           </div>
         </div>

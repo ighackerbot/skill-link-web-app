@@ -1,13 +1,14 @@
 import type React from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { BookOpen, Users, Calendar, TrendingUp, Award, MessageSquare } from "lucide-react"
 
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border-subtle">
+      <header className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-brand flex items-center justify-center">
@@ -27,10 +28,11 @@ export default function LandingPage() {
             </Link>
           </nav>
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <Button variant="ghost" asChild>
               <Link href="/login">Sign In</Link>
             </Button>
-            <Button asChild className="bg-brand hover:bg-brand-hover">
+            <Button asChild>
               <Link href="/signup">Get Started</Link>
             </Button>
           </div>
@@ -48,7 +50,7 @@ export default function LandingPage() {
             experts, and accelerate your academic journey.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" asChild className="bg-brand hover:bg-brand-hover text-base">
+            <Button size="lg" asChild className="text-base">
               <Link href="/signup">Join SkillLink</Link>
             </Button>
             <Button size="lg" variant="outline" asChild className="text-base bg-transparent">
@@ -99,7 +101,7 @@ export default function LandingPage() {
       </section>
 
       {/* How It Works */}
-      <section id="how-it-works" className="bg-surface py-20">
+      <section id="how-it-works" className="bg-muted/30 py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">How SkillLink Works</h2>
@@ -127,7 +129,7 @@ export default function LandingPage() {
 
       {/* CTA Section */}
       <section className="container mx-auto px-4 py-20">
-        <div className="max-w-3xl mx-auto text-center bg-surface-elevated rounded-lg p-12 border border-border">
+        <div className="max-w-3xl mx-auto text-center bg-card rounded-lg p-12 border border-border/50 shadow-sm">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Ready to Transform Your Learning?</h2>
           <p className="text-lg text-muted-foreground mb-8">
             Join thousands of students already connected on SkillLink
@@ -139,7 +141,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-border-subtle py-8">
+      <footer className="border-t border-border/50 py-8">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
           <p>&copy; 2025 SkillLink. Empowering campus learning.</p>
         </div>
@@ -150,8 +152,8 @@ export default function LandingPage() {
 
 function FeatureCard({ icon, title, description }: { icon: React.ReactNode; title: string; description: string }) {
   return (
-    <div className="bg-surface rounded-lg p-6 border border-border hover:border-brand/50 transition group">
-      <div className="w-12 h-12 rounded-lg bg-brand/10 flex items-center justify-center mb-4 text-brand group-hover:bg-brand group-hover:text-white transition">
+    <div className="bg-card rounded-lg p-6 border border-border/50 hover:border-border transition-all group shadow-sm hover:shadow-md">
+      <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center mb-4 text-foreground group-hover:bg-foreground group-hover:text-background transition">
         {icon}
       </div>
       <h3 className="text-lg font-semibold mb-2">{title}</h3>
@@ -163,7 +165,7 @@ function FeatureCard({ icon, title, description }: { icon: React.ReactNode; titl
 function StepCard({ number, title, description }: { number: string; title: string; description: string }) {
   return (
     <div className="text-center">
-      <div className="w-16 h-16 rounded-full bg-brand/10 flex items-center justify-center mx-auto mb-4 text-brand font-bold text-xl">
+      <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4 text-foreground font-bold text-xl">
         {number}
       </div>
       <h3 className="text-xl font-semibold mb-2">{title}</h3>

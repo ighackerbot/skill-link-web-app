@@ -1,8 +1,14 @@
+"use client"
+
+import { useState } from "react"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { OfficeHoursFilters } from "@/components/office-hours/office-hours-filters"
 import { OfficeHoursGrid } from "@/components/office-hours/office-hours-grid"
+import type { Batch } from "@/lib/types"
 
 export default function OfficeHoursPage() {
+  const [selectedBatch, setSelectedBatch] = useState<Batch | null>(null)
+
   return (
     <div className="min-h-screen bg-background">
       <DashboardHeader />
@@ -13,10 +19,10 @@ export default function OfficeHoursPage() {
         </div>
         <div className="grid lg:grid-cols-4 gap-8">
           <aside className="lg:col-span-1">
-            <OfficeHoursFilters />
+            <OfficeHoursFilters onBatchChange={setSelectedBatch} />
           </aside>
           <div className="lg:col-span-3">
-            <OfficeHoursGrid />
+            <OfficeHoursGrid batch={selectedBatch} />
           </div>
         </div>
       </main>

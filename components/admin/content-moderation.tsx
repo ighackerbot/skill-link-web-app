@@ -50,7 +50,7 @@ const FLAGGED_CONTENT = [
 
 export function ContentModeration() {
   return (
-    <Card className="bg-surface border-border">
+    <Card className="bg-card border-border/50">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Content Moderation</CardTitle>
@@ -61,7 +61,7 @@ export function ContentModeration() {
       </CardHeader>
       <CardContent className="space-y-4">
         {FLAGGED_CONTENT.map((item) => (
-          <div key={item.id} className="p-4 rounded-lg bg-background border border-border space-y-3">
+          <div key={item.id} className="p-4 rounded-lg bg-background border border-border/50 space-y-3">
             <div className="flex items-start gap-3">
               <AlertTriangle className="w-5 h-5 text-accent-secondary flex-shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
@@ -77,7 +77,7 @@ export function ContentModeration() {
                 <div className="flex items-center gap-2 mb-3">
                   <Avatar className="w-6 h-6">
                     <AvatarImage src={item.author.avatar || "/placeholder.svg"} />
-                    <AvatarFallback className="bg-brand text-white text-xs">
+                    <AvatarFallback className="bg-foreground text-background text-xs">
                       {item.author.name
                         .split(" ")
                         .map((n) => n[0])
@@ -102,7 +102,7 @@ export function ContentModeration() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 pt-2 border-t border-border">
+            <div className="flex items-center gap-2 pt-2 border-t border-border/50">
               <Button size="sm" variant="outline" className="flex-1 text-accent bg-transparent">
                 <CheckCircle className="w-3 h-3 mr-1" />
                 Approve

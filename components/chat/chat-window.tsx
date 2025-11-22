@@ -50,11 +50,11 @@ export function ChatWindow() {
   return (
     <div className="flex-1 flex flex-col">
       {/* Chat Header */}
-      <div className="p-4 border-b border-border-subtle bg-surface flex items-center justify-between">
+      <div className="p-4 border-b border-border/50 bg-card flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Avatar className="w-10 h-10">
             <AvatarImage src="/placeholder.svg?height=40&width=40" />
-            <AvatarFallback className="bg-brand text-white">SC</AvatarFallback>
+              <AvatarFallback className="bg-foreground text-background">SC</AvatarFallback>
           </Avatar>
           <div>
             <h3 className="font-semibold">Sarah Chen</h3>
@@ -89,7 +89,7 @@ export function ChatWindow() {
             <div className={`max-w-md ${msg.isSender ? "items-end" : "items-start"} flex flex-col gap-1`}>
               <div
                 className={`px-4 py-2 rounded-lg ${
-                  msg.isSender ? "bg-brand text-white" : "bg-surface border border-border"
+                  msg.isSender ? "bg-foreground text-background" : "bg-card border border-border/50"
                 }`}
               >
                 <p className="text-sm">{msg.content}</p>
@@ -101,7 +101,7 @@ export function ChatWindow() {
       </div>
 
       {/* Input */}
-      <div className="p-4 border-t border-border-subtle bg-surface">
+      <div className="p-4 border-t border-border/50 bg-card">
         <div className="flex items-center gap-2">
           <Input
             placeholder="Type a message..."
@@ -109,7 +109,7 @@ export function ChatWindow() {
             onChange={(e) => setMessage(e.target.value)}
             className="flex-1 bg-background"
           />
-          <Button size="icon" className="bg-brand hover:bg-brand-hover">
+          <Button size="icon">
             <Send className="w-4 h-4" />
           </Button>
         </div>

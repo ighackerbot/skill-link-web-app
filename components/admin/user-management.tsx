@@ -48,7 +48,7 @@ const RECENT_USERS = [
 
 export function UserManagement() {
   return (
-    <Card className="bg-surface border-border">
+    <Card className="bg-card border-border/50">
       <CardHeader>
         <CardTitle className="text-lg">Recent Users</CardTitle>
       </CardHeader>
@@ -60,11 +60,11 @@ export function UserManagement() {
 
         <div className="space-y-3">
           {RECENT_USERS.map((user) => (
-            <div key={user.id} className="p-3 rounded-lg bg-background border border-border">
+            <div key={user.id} className="p-3 rounded-lg bg-background border border-border/50">
               <div className="flex items-start gap-3 mb-2">
                 <Avatar className="w-8 h-8">
                   <AvatarImage src={user.avatar || "/placeholder.svg"} />
-                  <AvatarFallback className="bg-brand text-white text-xs">
+                  <AvatarFallback className="bg-foreground text-background text-xs">
                     {user.name
                       .split(" ")
                       .map((n) => n[0])
@@ -88,7 +88,7 @@ export function UserManagement() {
                 <div className="flex items-center gap-2">
                   <Badge
                     variant="outline"
-                    className={`text-xs ${user.role === "faculty" ? "bg-brand/10 text-brand border-brand/20" : ""}`}
+                    className={`text-xs ${user.role === "faculty" ? "bg-muted text-foreground border-border/50" : ""}`}
                   >
                     {user.role}
                   </Badge>

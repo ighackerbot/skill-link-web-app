@@ -49,8 +49,8 @@ export function ChatSidebar() {
   const [selectedChat, setSelectedChat] = useState("1")
 
   return (
-    <aside className="w-80 border-r border-border-subtle bg-surface flex flex-col">
-      <div className="p-4 border-b border-border-subtle">
+    <aside className="w-80 border-r border-border/50 bg-card flex flex-col">
+      <div className="p-4 border-b border-border/50">
         <h2 className="text-lg font-semibold mb-3">Messages</h2>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

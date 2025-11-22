@@ -1,153 +1,171 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, Clock, MapPin, Video, Users } from "lucide-react"
+import { Calendar, Clock, MapPin, Video, Users, AlertCircle } from "lucide-react"
+import { getOfficeHoursSlots, bookFacultySlot } from "@/lib/db/office-hours"
+import { createClient } from "@/lib/supabase/client"
+import { format } from "date-fns"
+import { toast } from "sonner"
+import type { Batch } from "@/lib/types"
 
-const MOCK_OFFICE_HOURS = [
-  {
-    id: "1",
-    faculty: {
-      name: "Dr. Jennifer Smith",
-      title: "Professor of Computer Science",
-      avatar: "/placeholder.svg?height=64&width=64",
-      department: "Computer Science",
-    },
-    courses: ["CS 101", "CS 301"],
-    slots: [
-      {
-        id: "s1",
-        date: "Today",
-        time: "2:00 PM - 4:00 PM",
-        type: "virtual",
-        capacity: 8,
-        booked: 5,
-      },
-      {
-        id: "s2",
-        date: "Tomorrow",
-        time: "10:00 AM - 12:00 PM",
-        type: "in-person",
-        location: "Office 304",
-        capacity: 4,
-        booked: 2,
-      },
-    ],
-  },
-  {
-    id: "2",
-    faculty: {
-      name: "Prof. Michael Chen",
-      title: "Associate Professor of Data Science",
-      avatar: "/placeholder.svg?height=64&width=64",
-      department: "Computer Science",
-    },
-    courses: ["CS 201", "CS 401"],
-    slots: [
-      {
-        id: "s3",
-        date: "Today",
-        time: "3:00 PM - 5:00 PM",
-        type: "virtual",
-        capacity: 10,
-        booked: 7,
-      },
-    ],
-  },
-  {
-    id: "3",
-    faculty: {
-      name: "Dr. Sarah Williams",
-      title: "Assistant Professor of Algorithms",
-      avatar: "/placeholder.svg?height=64&width=64",
-      department: "Computer Science",
-    },
-    courses: ["CS 202", "CS 302"],
-    slots: [
-      {
-        id: "s4",
-        date: "Nov 21",
-        time: "1:00 PM - 3:00 PM",
-        type: "in-person",
-        location: "Office 210",
-        capacity: 6,
-        booked: 3,
-      },
-    ],
-  },
-]
+export function OfficeHoursGrid({ batch }: { batch: Batch | null }) {
+  const [slots, setSlots] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [booking, setBooking] = useState<string | null>(null)
 
-export function OfficeHoursGrid() {
+  useEffect(() => {
+    if (!batch) {
+      setLoading(false)
+      return
+    }
+
+    async function loadSlots() {
+      try {
+        const data = await getOfficeHoursSlots(batch)
+        setSlots(data)
+      } catch (error) {
+        console.error('Error loading office hours:', error)
+        toast.error('Failed to load office hours')
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadSlots()
+  }, [batch])
+
+  const handleBook = async (slotId: string) => {
+    if (!batch) {
+      toast.error('Please select your batch first')
+      return
+    }
+
+    setBooking(slotId)
+    try {
+      await bookFacultySlot(slotId)
+      toast.success('Slot booked successfully!')
+      // Reload slots
+      const data = await getOfficeHoursSlots(batch)
+      setSlots(data)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to book slot')
+    } finally {
+      setBooking(null)
+    }
+  }
+
+  if (!batch) {
+    return (
+      <div className="text-center py-12 space-y-2">
+        <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground opacity-50" />
+        <p className="text-muted-foreground">Please select your batch to view office hours</p>
+      </div>
+    )
+  }
+
+  if (loading) {
+    return <div className="text-center py-8 text-muted-foreground">Loading office hours...</div>
+  }
+
+  if (slots.length === 0) {
+    return (
+      <div className="text-center py-12 space-y-2">
+        <Calendar className="w-12 h-12 mx-auto text-muted-foreground opacity-50" />
+        <p className="text-muted-foreground">No office hours available for batch {batch}</p>
+      </div>
+    )
+  }
+
+  // Group slots by faculty
+  const groupedSlots = slots.reduce((acc: any, slot: any) => {
+    const facultyId = slot.faculty_id
+    if (!acc[facultyId]) {
+      acc[facultyId] = {
+        faculty: slot.faculty,
+        slots: []
+      }
+    }
+    acc[facultyId].slots.push(slot)
+    return acc
+  }, {})
+
   return (
     <div className="space-y-4">
-      {MOCK_OFFICE_HOURS.map((officeHour) => (
-        <Card key={officeHour.id} className="bg-surface border-border">
+      {Object.values(groupedSlots).map((group: any, idx: number) => (
+        <Card key={idx} className="bg-card border-border/50">
           <CardContent className="p-6">
             <div className="flex items-start gap-4 mb-6">
               <Avatar className="w-16 h-16">
-                <AvatarImage src={officeHour.faculty.avatar || "/placeholder.svg"} />
-                <AvatarFallback className="bg-brand text-white">
-                  {officeHour.faculty.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
+                <AvatarImage src={group.faculty?.avatar || "/placeholder.svg"} />
+                <AvatarFallback className="bg-foreground text-background">
+                  {group.faculty?.name?.split(" ").map((n: string) => n[0]).join("") || "F"}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <h3 className="font-semibold text-lg mb-1">{officeHour.faculty.name}</h3>
-                <p className="text-sm text-muted-foreground mb-3">{officeHour.faculty.title}</p>
-                <div className="flex flex-wrap gap-2">
-                  {officeHour.courses.map((course) => (
-                    <Badge key={course} variant="outline">
-                      {course}
-                    </Badge>
-                  ))}
-                </div>
+                <h3 className="font-semibold text-lg mb-1">{group.faculty?.name || 'Unknown Faculty'}</h3>
+                <p className="text-sm text-muted-foreground mb-3">{group.faculty?.bio || ''}</p>
+                <Badge variant="outline" className="text-xs">
+                  Batch {batch}
+                </Badge>
               </div>
             </div>
 
             <div className="space-y-3">
               <h4 className="text-sm font-semibold text-muted-foreground">Available Time Slots</h4>
               <div className="grid md:grid-cols-2 gap-3">
-                {officeHour.slots.map((slot) => (
-                  <div key={slot.id} className="p-4 rounded-lg bg-background border border-border space-y-3">
-                    <div className="space-y-2 text-sm">
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Calendar className="w-4 h-4" />
-                        <span>{slot.date}</span>
+                {group.slots.map((slot: any) => {
+                  const slotDate = new Date(slot.scheduled_at)
+                  const isToday = slotDate.toDateString() === new Date().toDateString()
+                  const isFull = slot.booked_count >= slot.capacity
+                  
+                  return (
+                    <div key={slot.id} className="p-4 rounded-lg bg-background border border-border/50 space-y-3">
+                      <div className="space-y-2 text-sm">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Calendar className="w-4 h-4" />
+                          <span>{isToday ? 'Today' : format(slotDate, 'MMM d')}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          <Clock className="w-4 h-4" />
+                          <span>{format(slotDate, 'h:mm a')} ({slot.duration} min)</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                          {slot.mode === "online" ? (
+                            <>
+                              <Video className="w-4 h-4" />
+                              <span>Virtual Meeting</span>
+                            </>
+                          ) : (
+                            <>
+                              <MapPin className="w-4 h-4" />
+                              <span>{slot.location || 'Location TBD'}</span>
+                            </>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Users className="w-4 h-4 text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground">
+                            {slot.booked_count}/{slot.capacity} spots filled
+                          </span>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Topic: {slot.topic || slot.subject}
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        <Clock className="w-4 h-4" />
-                        <span>{slot.time}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-muted-foreground">
-                        {slot.type === "virtual" ? (
-                          <>
-                            <Video className="w-4 h-4" />
-                            <span>Virtual Meeting</span>
-                          </>
-                        ) : (
-                          <>
-                            <MapPin className="w-4 h-4" />
-                            <span>{slot.location}</span>
-                          </>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">
-                          {slot.booked}/{slot.capacity} spots filled
-                        </span>
-                      </div>
-                    </div>
 
-                    <Button className="w-full bg-brand hover:bg-brand-hover" disabled={slot.booked >= slot.capacity}>
-                      {slot.booked >= slot.capacity ? "Fully Booked" : "Book This Slot"}
-                    </Button>
-                  </div>
-                ))}
+                      <Button 
+                        className="w-full" 
+                        disabled={isFull || booking === slot.id}
+                        onClick={() => handleBook(slot.id)}
+                      >
+                        {booking === slot.id ? 'Booking...' : isFull ? "Fully Booked" : "Book This Slot"}
+                      </Button>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           </CardContent>

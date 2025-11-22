@@ -1,115 +1,126 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { createClient } from "@/lib/supabase/client"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Heart, MessageCircle, Share2, MoreVertical } from "lucide-react"
-
-const MOCK_POSTS = [
-  {
-    id: "1",
-    author: {
-      name: "Sarah Chen",
-      avatar: "/placeholder.svg?height=40&width=40",
-      isAnonymous: false,
-    },
-    content:
-      "Just had an amazing React session! Finally understand useCallback and useMemo. Thanks to everyone who helped me get here! 🚀",
-    tags: ["React", "Web Dev"],
-    likes: 24,
-    comments: 5,
-    timestamp: "2 hours ago",
-    isLiked: false,
-  },
-  {
-    id: "2",
-    author: {
-      name: "Anonymous",
-      avatar: "/placeholder.svg?height=40&width=40",
-      isAnonymous: true,
-    },
-    content:
-      "Struggling with understanding time complexity in algorithms. Can someone explain O(n log n) in simple terms? Would love to schedule a session!",
-    tags: ["Algorithms", "Help Needed"],
-    likes: 12,
-    comments: 8,
-    timestamp: "4 hours ago",
-    isLiked: true,
-  },
-  {
-    id: "3",
-    author: {
-      name: "Marcus Johnson",
-      avatar: "/placeholder.svg?height=40&width=40",
-      isAnonymous: false,
-    },
-    content:
-      "Looking for 2-3 people to form a study group for the upcoming data structures exam. Planning to meet twice a week at the library. DM if interested!",
-    tags: ["Study Group", "Data Structures"],
-    likes: 18,
-    comments: 12,
-    timestamp: "6 hours ago",
-    isLiked: false,
-  },
-]
+import { Heart, MessageCircle, Share2 } from "lucide-react"
+import { getFeedPosts, likePost } from "@/lib/db/posts"
+import { formatDistanceToNow } from "date-fns"
+import { toast } from "sonner"
+import { createClient } from "@/lib/supabase/client"
 
 export function FeedPosts() {
+  const [posts, setPosts] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadPosts() {
+      try {
+        const data = await getFeedPosts(20)
+        setPosts(data)
+      } catch (error) {
+        console.error('Error loading posts:', error)
+        toast.error('Failed to load posts')
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadPosts()
+  }, [])
+
+  if (loading) {
+    return <div className="text-center py-8 text-muted-foreground">Loading posts...</div>
+  }
+
+  if (posts.length === 0) {
+    return (
+      <div className="text-center py-12 space-y-2">
+        <p className="text-muted-foreground">No posts yet</p>
+        <p className="text-sm text-muted-foreground">Be the first to share something!</p>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-4">
-      {MOCK_POSTS.map((post) => (
+      {posts.map((post) => (
         <PostCard key={post.id} post={post} />
       ))}
     </div>
   )
 }
 
-function PostCard({ post }: { post: (typeof MOCK_POSTS)[0] }) {
-  const [isLiked, setIsLiked] = useState(post.isLiked)
-  const [likesCount, setLikesCount] = useState(post.likes)
+function PostCard({ post }: { post: any }) {
+  const [isLiked, setIsLiked] = useState(false)
+  const [likesCount, setLikesCount] = useState(post.likes_count || 0)
   const [showComments, setShowComments] = useState(false)
+  const [loading, setLoading] = useState(false)
 
-  const handleLike = () => {
-    setIsLiked(!isLiked)
-    setLikesCount(isLiked ? likesCount - 1 : likesCount + 1)
+  useEffect(() => {
+    async function checkLiked() {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data } = await supabase
+        .from('post_likes')
+        .select('id')
+        .eq('post_id', post.id)
+        .eq('user_id', user.id)
+        .single()
+
+      setIsLiked(!!data)
+    }
+    checkLiked()
+  }, [post.id])
+
+  const handleLike = async () => {
+    if (loading) return
+    setLoading(true)
+    try {
+      const newLiked = await likePost(post.id)
+      setIsLiked(newLiked)
+      setLikesCount(newLiked ? likesCount + 1 : likesCount - 1)
+    } catch (error) {
+      toast.error('Failed to like post')
+    } finally {
+      setLoading(false)
+    }
   }
 
+  const authorName = post.is_anonymous ? 'Anonymous' : (post.author?.name || 'Unknown')
+  const authorAvatar = post.is_anonymous ? null : (post.author?.avatar || null)
+  const timestamp = post.created_at ? formatDistanceToNow(new Date(post.created_at), { addSuffix: true }) : 'Recently'
+
   return (
-    <Card className="bg-surface border-border">
+    <Card className="bg-card border-border/50">
       <CardContent className="p-6 space-y-4">
         {/* Post Header */}
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-3">
             <Avatar className="w-10 h-10">
-              <AvatarImage src={post.author.avatar || "/placeholder.svg"} />
-              <AvatarFallback className="bg-brand text-white">
-                {post.author.isAnonymous
-                  ? "A"
-                  : post.author.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
+              <AvatarImage src={authorAvatar || "/placeholder.svg"} />
+              <AvatarFallback className="bg-foreground text-background">
+                {post.is_anonymous ? "A" : authorName.split(" ").map((n: string) => n[0]).join("")}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="font-semibold text-sm">{post.author.isAnonymous ? "Anonymous" : post.author.name}</h3>
-              <p className="text-xs text-muted-foreground">{post.timestamp}</p>
+              <h3 className="font-semibold text-sm">{authorName}</h3>
+              <p className="text-xs text-muted-foreground">{timestamp}</p>
             </div>
           </div>
-          <Button variant="ghost" size="icon">
-            <MoreVertical className="w-4 h-4" />
-          </Button>
         </div>
 
         {/* Post Content */}
         <p className="text-sm leading-relaxed">{post.content}</p>
 
         {/* Tags */}
-        {post.tags.length > 0 && (
+        {post.tags && post.tags.length > 0 && (
           <div className="flex flex-wrap gap-2">
-            {post.tags.map((tag) => (
+            {post.tags.map((tag: string) => (
               <Badge key={tag} variant="outline" className="text-xs">
                 {tag}
               </Badge>
@@ -135,7 +146,7 @@ function PostCard({ post }: { post: (typeof MOCK_POSTS)[0] }) {
             onClick={() => setShowComments(!showComments)}
           >
             <MessageCircle className="w-4 h-4 mr-2" />
-            <span className="text-sm">{post.comments}</span>
+            <span className="text-sm">{post.comments_count || 0}</span>
           </Button>
           <Button variant="ghost" size="sm" className="flex-1 text-muted-foreground">
             <Share2 className="w-4 h-4 mr-2" />
@@ -151,7 +162,7 @@ function PostCard({ post }: { post: (typeof MOCK_POSTS)[0] }) {
               <div className="flex items-start gap-3">
                 <Avatar className="w-8 h-8">
                   <AvatarImage src="/placeholder.svg?height=32&width=32" />
-                  <AvatarFallback className="bg-brand text-white text-xs">ER</AvatarFallback>
+                  <AvatarFallback className="bg-foreground text-background text-xs">ER</AvatarFallback>
                 </Avatar>
                 <div className="flex-1">
                   <div className="bg-background rounded-lg p-3">
@@ -167,7 +178,7 @@ function PostCard({ post }: { post: (typeof MOCK_POSTS)[0] }) {
             <div className="flex items-center gap-2">
               <Avatar className="w-8 h-8">
                 <AvatarImage src="/placeholder.svg?height=32&width=32" />
-                <AvatarFallback className="bg-brand text-white text-xs">JD</AvatarFallback>
+                <AvatarFallback className="bg-foreground text-background text-xs">JD</AvatarFallback>
               </Avatar>
               <Input placeholder="Write a comment..." className="flex-1 bg-background" />
             </div>
