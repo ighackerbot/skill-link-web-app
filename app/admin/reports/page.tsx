@@ -42,12 +42,12 @@ export default function ReportsPage() {
 
         <div className="grid md:grid-cols-2 gap-6">
           {reports.map((report) => (
-            <Card key={report.title} className="bg-surface border-border">
+            <Card key={report.title} className="bg-card border border-border/50">
               <CardHeader>
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-4">
-                    <div className="w-12 h-12 rounded-lg bg-brand/10 flex items-center justify-center">
-                      <report.icon className="w-6 h-6 text-brand" />
+                    <div className="w-12 h-12 rounded-lg bg-foreground/10 flex items-center justify-center">
+                      <report.icon className="w-6 h-6 text-foreground" />
                     </div>
                     <div>
                       <CardTitle className="text-lg mb-1">{report.title}</CardTitle>

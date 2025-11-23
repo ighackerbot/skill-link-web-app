@@ -21,10 +21,10 @@ export function FeedSidebar() {
   return (
     <div className="space-y-6 sticky top-24">
       {/* Trending Topics */}
-      <Card className="bg-surface border-border">
+      <Card className="bg-card border border-border/50">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-accent" />
+            <TrendingUp className="w-5 h-5 text-foreground" />
             Trending Topics
           </CardTitle>
         </CardHeader>
@@ -45,10 +45,10 @@ export function FeedSidebar() {
       </Card>
 
       {/* Top Contributors */}
-      <Card className="bg-surface border-border">
+      <Card className="bg-card border border-border/50">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
-            <Users className="w-5 h-5 text-brand" />
+            <Users className="w-5 h-5 text-foreground" />
             Top Contributors
           </CardTitle>
         </CardHeader>
@@ -56,11 +56,11 @@ export function FeedSidebar() {
           {ACTIVE_USERS.map((user, index) => (
             <div
               key={user.name}
-              className="flex items-center gap-3 p-2 rounded hover:bg-background transition cursor-pointer"
+              className="flex items-center gap-3 p-2 rounded hover:bg-background/70 transition cursor-pointer"
             >
               <span className="text-xs font-semibold text-muted-foreground w-5">{index + 1}</span>
-              <div className="w-8 h-8 rounded-full bg-brand/10 flex items-center justify-center">
-                <span className="text-xs font-semibold text-brand">
+              <div className="w-8 h-8 rounded-full bg-foreground/10 flex items-center justify-center">
+                <span className="text-xs font-semibold text-foreground">
                   {user.name
                     .split(" ")
                     .map((n) => n[0])

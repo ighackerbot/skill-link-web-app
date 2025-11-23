@@ -11,8 +11,8 @@ export default function LandingPage() {
       <header className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-brand flex items-center justify-center">
-              <BookOpen className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 rounded-lg bg-foreground flex items-center justify-center">
+              <BookOpen className="w-5 h-5 text-background" />
             </div>
             <span className="text-xl font-semibold">SkillLink</span>
           </div>
@@ -43,7 +43,7 @@ export default function LandingPage() {
       <section className="container mx-auto px-4 py-20 md:py-32">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-5xl md:text-6xl font-bold mb-6 text-balance">
-            Connect. Learn. <span className="text-brand">Grow Together.</span>
+            Connect. Learn. <span className="text-foreground">Grow Together.</span>
           </h1>
           <p className="text-xl text-muted-foreground mb-8 leading-relaxed text-pretty">
             Your campus-first peer learning platform. Match with students who share your goals, book sessions with
@@ -134,7 +134,7 @@ export default function LandingPage() {
           <p className="text-lg text-muted-foreground mb-8">
             Join thousands of students already connected on SkillLink
           </p>
-          <Button size="lg" asChild className="bg-brand hover:bg-brand-hover">
+          <Button size="lg" asChild>
             <Link href="/signup">Get Started Free</Link>
           </Button>
         </div>

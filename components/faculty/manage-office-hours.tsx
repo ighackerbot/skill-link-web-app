@@ -41,11 +41,11 @@ const MOCK_OFFICE_HOURS = [
 
 export function ManageOfficeHours() {
   return (
-    <Card className="bg-surface border-border">
+    <Card className="bg-card border border-border/50">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Manage Office Hours</CardTitle>
-          <Button className="bg-brand hover:bg-brand-hover" size="sm">
+          <Button size="sm">
             <Plus className="w-4 h-4 mr-2" />
             Add New
           </Button>
@@ -53,7 +53,7 @@ export function ManageOfficeHours() {
       </CardHeader>
       <CardContent className="space-y-4">
         {MOCK_OFFICE_HOURS.map((hours) => (
-          <div key={hours.id} className="p-4 rounded-lg bg-background border border-border">
+          <div key={hours.id} className="p-4 rounded-lg bg-background/60 border border-border/50">
             <div className="flex items-start justify-between mb-3">
               <div>
                 <h3 className="font-semibold mb-1">{hours.title}</h3>

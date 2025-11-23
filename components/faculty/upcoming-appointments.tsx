@@ -44,17 +44,17 @@ const MOCK_APPOINTMENTS = [
 
 export function UpcomingAppointments() {
   return (
-    <Card className="bg-surface border-border">
+    <Card className="bg-card border border-border/50">
       <CardHeader>
         <CardTitle className="text-lg">Upcoming Appointments</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {MOCK_APPOINTMENTS.map((appointment) => (
-          <div key={appointment.id} className="p-4 rounded-lg bg-background border border-border space-y-3">
+          <div key={appointment.id} className="p-4 rounded-lg bg-background/60 border border-border/50 space-y-3">
             <div className="flex items-start gap-3">
               <Avatar className="w-10 h-10">
                 <AvatarImage src={appointment.student.avatar || "/placeholder.svg"} />
-                <AvatarFallback className="bg-brand text-white">
+                <AvatarFallback className="bg-foreground text-background">
                   {appointment.student.name
                     .split(" ")
                     .map((n) => n[0])
@@ -78,7 +78,7 @@ export function UpcomingAppointments() {
             </div>
 
             <div className="flex items-center gap-2">
-              <Button size="sm" className="flex-1 bg-brand hover:bg-brand-hover">
+              <Button size="sm" className="flex-1">
                 <Video className="w-3 h-3 mr-1" />
                 Join
               </Button>

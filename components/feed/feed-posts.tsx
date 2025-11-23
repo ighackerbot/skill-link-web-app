@@ -1,11 +1,11 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { createClient } from "@/lib/supabase/client"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
 import { Heart, MessageCircle, Share2 } from "lucide-react"
 import { getFeedPosts, likePost } from "@/lib/db/posts"
 import { formatDistanceToNow } from "date-fns"
