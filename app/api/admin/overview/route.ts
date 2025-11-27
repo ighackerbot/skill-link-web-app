@@ -1,5 +1,5 @@
 import { supabaseAdmin } from "@/lib/supabaseServer"
-import { requireAdmin } from "@/middleware/adminGuard"
+import { requireAdmin } from "@/proxy/adminGuard"
 
 export async function GET(request: Request) {
   const adminUser = await requireAdmin(request)
