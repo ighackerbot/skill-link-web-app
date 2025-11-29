@@ -1,11 +1,6 @@
 import { useEffect, useState } from "react"
-import { createBrowserClient } from "@supabase/ssr"
-import { ADMIN_WHITELIST } from "@/lib/adminWhitelist"
-
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+import { createClient } from "@/lib/supabase/client"
+import { isAdminEmail } from "@/lib/auth/admin-helpers"
 
 export function useAdmin() {
   const [loading, setLoading] = useState(true)
@@ -16,6 +11,7 @@ export function useAdmin() {
     let mounted = true
 
     async function load() {
+      const supabase = createClient()
       const {
         data: { session },
       } = await supabase.auth.getSession()
@@ -29,9 +25,8 @@ export function useAdmin() {
         return
       }
 
-      const email = session.user.email?.toLowerCase() || ""
       setUser(session.user)
-      setIsAdmin(ADMIN_WHITELIST.includes(email))
+      setIsAdmin(isAdminEmail(session.user.email))
       setLoading(false)
     }
 

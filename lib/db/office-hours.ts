@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client'
  */
 export async function getOfficeHoursSlots(batch: string) {
   const supabase = createClient()
-  
+
   const { data, error } = await supabase
     .from('faculty_slots')
     .select(`
@@ -30,7 +30,7 @@ export async function getOfficeHoursSlots(batch: string) {
 export async function bookFacultySlot(slotId: string) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  
+
   if (!user) {
     throw new Error('Not authenticated')
   }
@@ -84,6 +84,57 @@ export async function bookFacultySlot(slotId: string) {
     .update({ booked_count: slot.booked_count + 1 })
     .eq('id', slotId)
 
+  return true
+}
+
+export async function getMySlots() {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return []
+
+  const { data, error } = await supabase
+    .from('faculty_slots')
+    .select('*')
+    .eq('faculty_id', user.id)
+    .order('scheduled_at', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching my slots:', error)
+    return []
+  }
+
+  return data || []
+}
+
+export async function createFacultySlot(payload: any) {
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) throw new Error('Not authenticated')
+
+  const { data, error } = await supabase
+    .from('faculty_slots')
+    .insert({
+      ...payload,
+      faculty_id: user.id,
+      booked_count: 0
+    })
+    .select()
+    .single()
+
+  if (error) throw new Error(error.message)
+  return data
+}
+
+export async function deleteFacultySlot(slotId: string) {
+  const supabase = createClient()
+  const { error } = await supabase
+    .from('faculty_slots')
+    .delete()
+    .eq('id', slotId)
+
+  if (error) throw new Error(error.message)
   return true
 }
 

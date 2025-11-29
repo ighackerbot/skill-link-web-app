@@ -1,30 +1,19 @@
-import { supabaseAdmin } from "@/lib/supabaseServer"
-import { isWhitelisted } from "@/lib/adminWhitelist"
+import { createClient } from "@/lib/supabase/server"
+import { isAdminEmail } from "@/lib/auth/admin-helpers"
+import { NextResponse } from "next/server"
 
-export async function requireAdmin(request: Request) {
-  const authHeader = request.headers.get("authorization") || ""
-  const token = authHeader.replace(/^Bearer\s+/i, "")
+export async function requireAdmin() {
+  const supabase = await createClient()
 
-  if (!token) {
-    return new Response(JSON.stringify({ error: "Unauthorized: Missing token" }), {
-      status: 401,
-    })
+  const { data: { user }, error } = await supabase.auth.getUser()
+
+  if (error || !user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const { data, error } = await supabaseAdmin.auth.getUser(token)
-
-  if (error || !data?.user) {
-    return new Response(JSON.stringify({ error: "Invalid or expired session token" }), {
-      status: 401,
-    })
+  if (!isAdminEmail(user.email)) {
+    return NextResponse.json({ error: "Admin access restricted" }, { status: 403 })
   }
 
-  const email = data.user.email ?? ""
-  if (!isWhitelisted(email)) {
-    return new Response(JSON.stringify({ error: "Admin access restricted" }), {
-      status: 403,
-    })
-  }
-
-  return data.user
+  return user
 }

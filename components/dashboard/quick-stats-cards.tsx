@@ -1,33 +1,61 @@
+"use client"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { Users, Calendar, Award, TrendingUp } from "lucide-react"
+import { useEffect, useState } from "react"
+import { getUserStats } from "@/lib/db/stats"
 
 export function QuickStatsCards() {
-  const stats = [
+  const [stats, setStats] = useState({
+    activeMatches: 0,
+    sessionsCompleted: 0,
+    skillPoints: 0,
+    streak: 0
+  })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadStats() {
+      try {
+        const data = await getUserStats()
+        if (data) {
+          setStats(data)
+        }
+      } catch (error) {
+        console.error('Error loading stats:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadStats()
+  }, [])
+
+  const statItems = [
     {
       label: "Active Matches",
-      value: "12",
-      change: "+3 this week",
+      value: loading ? "-" : stats.activeMatches.toString(),
+      change: "Total matches",
       icon: Users,
       color: "text-foreground",
     },
     {
       label: "Sessions Completed",
-      value: "24",
-      change: "+5 this month",
+      value: loading ? "-" : stats.sessionsCompleted.toString(),
+      change: "Lifetime sessions",
       icon: Calendar,
       color: "text-accent",
     },
     {
       label: "SkillPoints",
-      value: "1,250",
-      change: "+150 earned",
+      value: loading ? "-" : stats.skillPoints.toLocaleString(),
+      change: "Total earned",
       icon: Award,
       color: "text-accent-secondary",
     },
     {
       label: "Learning Streak",
-      value: "7 days",
-      change: "Keep it up!",
+      value: loading ? "-" : `${stats.streak} days`,
+      change: "Current streak",
       icon: TrendingUp,
       color: "text-accent",
     },
@@ -35,7 +63,7 @@ export function QuickStatsCards() {
 
   return (
     <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {stats.map((stat) => (
+      {statItems.map((stat) => (
         <Card key={stat.label} className="bg-card border-border/50">
           <CardContent className="p-6">
             <div className="flex items-start justify-between">

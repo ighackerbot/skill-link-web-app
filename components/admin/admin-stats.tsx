@@ -1,36 +1,62 @@
+"use client"
+
 import { Card, CardContent } from "@/components/ui/card"
 import { Users, BookOpen, MessageSquare, TrendingUp } from "lucide-react"
+import { useEffect, useState } from "react"
+import { getAdminStats } from "@/lib/db/admin"
 
 export function AdminStats() {
-  const stats = [
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    activeSessions: 0,
+    messagesSent: 0,
+    matchSuccessRate: 0
+  })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadStats() {
+      try {
+        const data = await getAdminStats()
+        setStats(data)
+      } catch (error) {
+        console.error('Error loading admin stats:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    loadStats()
+  }, [])
+
+  const statItems = [
     {
       label: "Total Users",
-      value: "2,456",
-      change: "+12% from last month",
+      value: loading ? "-" : stats.totalUsers.toLocaleString(),
+      change: "Total registered",
       trend: "up",
       icon: Users,
       color: "text-foreground",
     },
     {
       label: "Active Sessions",
-      value: "1,248",
-      change: "+8% from last month",
+      value: loading ? "-" : stats.activeSessions.toLocaleString(),
+      change: "Currently active",
       trend: "up",
       icon: BookOpen,
       color: "text-accent",
     },
     {
       label: "Messages Sent",
-      value: "45.2k",
-      change: "+24% from last month",
+      value: loading ? "-" : stats.messagesSent.toLocaleString(),
+      change: "Total messages",
       trend: "up",
       icon: MessageSquare,
       color: "text-accent-secondary",
     },
     {
       label: "Match Success Rate",
-      value: "87%",
-      change: "+3% from last month",
+      value: loading ? "-" : `${stats.matchSuccessRate}%`,
+      change: "Estimated",
       trend: "up",
       icon: TrendingUp,
       color: "text-accent",
@@ -39,7 +65,7 @@ export function AdminStats() {
 
   return (
     <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      {stats.map((stat) => (
+      {statItems.map((stat) => (
         <Card key={stat.label} className="bg-card border-border/50">
           <CardContent className="p-6">
             <div className="flex items-start justify-between mb-4">

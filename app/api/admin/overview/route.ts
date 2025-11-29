@@ -1,28 +1,28 @@
-import { supabaseAdmin } from "@/lib/supabaseServer"
+import { createClient } from "@/lib/supabase/server"
 import { requireAdmin } from "@/proxy/adminGuard"
+import { NextResponse } from "next/server"
 
-export async function GET(request: Request) {
-  const adminUser = await requireAdmin(request)
-  if (adminUser instanceof Response) {
+export async function GET() {
+  const adminUser = await requireAdmin()
+  if (adminUser instanceof NextResponse) {
     return adminUser
   }
 
+  const supabase = await createClient()
+
   const [users, sessions, posts, officeHours, matches] = await Promise.all([
-    supabaseAdmin.from("users").select("id"),
-    supabaseAdmin.from("sessions").select("id,status"),
-    supabaseAdmin.from("feed_posts").select("id"),
-    supabaseAdmin.from("office_hours").select("id"),
-    supabaseAdmin.from("matches").select("id"),
+    supabase.from("profiles").select("id", { count: 'exact', head: true }),
+    supabase.from("sessions").select("id", { count: 'exact', head: true }).eq("status", "active"),
+    supabase.from("posts").select("id", { count: 'exact', head: true }),
+    supabase.from("office_hours").select("id", { count: 'exact', head: true }),
+    supabase.from("matches").select("id", { count: 'exact', head: true }),
   ])
 
-  return new Response(
-    JSON.stringify({
-      totalUsers: users.data?.length ?? 0,
-      activeSessions: sessions.data?.filter((s) => s.status === "active").length ?? 0,
-      feedPosts: posts.data?.length ?? 0,
-      officeHours: officeHours.data?.length ?? 0,
-      matches: matches.data?.length ?? 0,
-    }),
-    { status: 200 }
-  )
+  return NextResponse.json({
+    totalUsers: users.count ?? 0,
+    activeSessions: sessions.count ?? 0,
+    feedPosts: posts.count ?? 0,
+    officeHours: officeHours.count ?? 0,
+    matches: matches.count ?? 0,
+  })
 }
